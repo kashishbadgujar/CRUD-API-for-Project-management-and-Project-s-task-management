@@ -1,0 +1,133 @@
+{
+  "name": "project-management",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "sourceRoot": "apps/project-management/src",
+  "projectType": "application",
+  "tags": [],
+  "targets": {
+    "build": {
+      "executor": "@nx/esbuild:esbuild",
+      "outputs": ["{options.outputPath}"],
+      "defaultConfiguration": "production",
+      "options": {
+        "platform": "node",
+        "outputPath": "dist/apps/project-management",
+        "format": ["cjs"],
+        "bundle": false,
+        "main": "apps/project-management/src/main.ts",
+        "tsConfig": "apps/project-management/tsconfig.app.json",
+        "assets": ["apps/project-management/src/assets"],
+        "generatePackageJson": true,
+        "esbuildOptions": {
+          "sourcemap": false,
+          "outExtension": {
+            ".js": ".js"
+          }
+        }
+      },
+      "configurations": {
+        "development": {},
+        "production": {
+          "esbuildOptions": {
+            "sourcemap": false,
+            "outExtension": {
+              ".js": ".js"
+            }
+          }
+        }
+      }
+    },
+    "prune-lockfile": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "executor": "@nx/js:prune-lockfile",
+      "outputs": [
+        "{workspaceRoot}/dist/apps/project-management/package.json",
+        "{workspaceRoot}/dist/apps/project-management/yarn.lock"
+      ],
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "copy-workspace-modules": {
+      "dependsOn": ["build"],
+      "cache": true,
+      "outputs": ["{workspaceRoot}/dist/apps/project-management/workspace_modules"],
+      "executor": "@nx/js:copy-workspace-modules",
+      "options": {
+        "buildTarget": "build"
+      }
+    },
+    "prune": {
+      "dependsOn": ["prune-lockfile", "copy-workspace-modules"],
+      "executor": "nx:noop"
+    },
+    "serve": {
+      "continuous": true,
+      "executor": "@nx/js:node",
+      "defaultConfiguration": "development",
+      "dependsOn": ["build"],
+      "options": {
+        "buildTarget": "project-management:build",
+        "runBuildTargetDependencies": false
+      },
+      "configurations": {
+        "development": {
+          "buildTarget": "project-management:build:development"
+        },
+        "production": {
+          "buildTarget": "project-management:build:production"
+        }
+      }
+    },
+    "migration:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sequelize-cli migration:generate",
+        "cwd": "apps/project-management"
+      }
+    },
+    "migration:apply": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sequelize-cli db:migrate",
+        "cwd": "apps/project-management"
+      }
+    },
+    "migration:rollback": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sequelize-cli db:migrate:undo:all",
+        "cwd": "apps/project-management"
+      }
+    },
+    "model:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sequelize-cli model:generate",
+        "cwd": "apps/project-management"
+      }
+    },
+    "seed:generate": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sequelize-cli seed:generate",
+        "cwd": "apps/project-management"
+      }
+    },
+    "seed:apply": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sequelize-cli db:seed:all",
+        "cwd": "apps/project-management"
+      }
+    },
+    "seed:rollback": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "sequelize-cli db:seed:undo:all",
+        "cwd": "apps/project-management"
+      }
+    }
+  }
+}
